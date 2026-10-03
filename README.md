@@ -92,9 +92,11 @@ they happened.
 
 **31 seconds, one continuous take, no edits** — recorded locally while it ran:
 
-<video src="https://raw.githubusercontent.com/adityashirsatrao007/rehearsal/main/docs/rehearsal-demo.mp4" controls width="720" preload="metadata"></video>
+[![Rehearsal demo: pick a scenario, get corrected, get scored](docs/rehearsal-demo.gif)](docs/rehearsal-demo.mp4)
 
-[Fallback link if your browser will not play it (1.1 MB, MP4)](docs/rehearsal-demo.mp4)
+The GIF above is a preview — click it for [the full-resolution MP4](docs/rehearsal-demo.mp4)
+(1.1 MB, 1440×900). *GitHub strips `<video>` tags from READMEs, so the GIF is
+what renders inline.*
 
 It does the whole loop: pick a scenario → send a deliberately broken sentence →
 stream an in-character reply → get a correction that names the actual rule →
