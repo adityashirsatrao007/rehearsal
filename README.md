@@ -188,6 +188,19 @@ scorecard prompt is the only place model quality really shows.
 model refuses to follow instructions, and asserts the app degrades gracefully
 instead of throwing.
 
+**`tools/eval_why.py`** is the companion *measurement* rather than a test — it
+talks to the real model, so it isn't in the suite. It fires the correction call
+at five typical learner errors and checks that the `WHY` line is actually about
+the sentence in front of it. The failure it exists to catch is a model
+confidently diagnosing an error that isn't there — an early run told someone
+*since* was wrong in a message that never used *since*. Run it after every
+prompt change:
+
+```bash
+.venv/bin/python tools/eval_why.py
+# grounded 5/5
+```
+
 ## Privacy
 
 - The transcript lives in `data/rehearsal.db` — a single local file.

@@ -57,6 +57,10 @@ Rules:
   improve". If there is genuinely no mistake, write "Clear and natural." in WHY.
 - Pick ONE error, the one that would most embarrass them in public. Do not
   list everything.
+- Say it about THEIR sentence, not about English in general. "Simple past is
+  used for a completed action" is a rule; "you wrote *have finished*, but
+  *last night* needs the simple past" is feedback. Always point at words they
+  actually used.
 - If the message is already correct, put a slightly smoother variant in BETTER.
 - Never exceed one sentence per line. No preamble, no closing remarks.
 """
