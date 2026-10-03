@@ -15,7 +15,7 @@ fi
 
 if ! curl -s --max-time 2 "${OLLAMA_HOST:-http://127.0.0.1:11434}/api/version" >/dev/null; then
   echo "⚠  Ollama is not running. Start it with:  ollama serve"
-  echo "   Then pull the model:                  ollama pull gemma2:2b"
+  echo "   Then pull the model:                  ollama pull gemma4:e2b"
 fi
 
 echo "→ Rehearsal on http://127.0.0.1:${PORT}"

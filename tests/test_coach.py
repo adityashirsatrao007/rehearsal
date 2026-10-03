@@ -1,4 +1,4 @@
-"""Parsing must survive a 2B model that ignores instructions.
+"""Parsing must survive a small model that ignores instructions.
 
 Every test here represents a real failure mode seen while building this.
 """

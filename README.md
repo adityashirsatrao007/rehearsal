@@ -58,7 +58,7 @@ Every one of these is a thing a closed API makes impossible or awkward:
 | **Works offline** | No. The app is a network client with extra steps. | Yes. Pull the model once; afterwards the laptop goes on a plane and it still works. |
 | **Your sentences stay yours** | Every practice turn is a request to a third party, logged on their terms. | The transcript lives in one local SQLite file. `data/` is gitignored. There is no outbound call to make. |
 | **Swap the model** | You're on their model roadmap, not yours. | One dropdown. Try a bigger model on a desktop, a smaller one on a laptop, same app. |
-| **Cost** | Per-token, forever, and the bill scales with how much you practise — which is exactly the behaviour you want to encourage. | One 1.6 GB download. Then practising is free, so practising more is free. |
+| **Cost** | Per-token, forever, and the bill scales with how much you practise — which is exactly the behaviour you want to encourage. | One 4.6 GB download. Then practising is free, so practising more is free. |
 | **Change how the agent behaves** | Prompt-only, and only within what their system prompt permits. | The three prompts are plain Python strings in `app/prompts.py`. Edit, restart, done. |
 
 The last row is the one that mattered most while building this. The whole
@@ -69,28 +69,45 @@ weights and the harness are all something you can read, edit and re-run.
 
 ### Where open beat closed in practice
 
-**A 2B model was enough.** Rehearsal's core loop is deliberately narrow: stay
-in character for 1–3 sentences, and rewrite one message in three labelled
-lines. A frontier model would do it better, but "better" here means slightly
-smoother phrasing — while costing money per attempt, requiring the network, and
-sending practice sentences off-device. On a 4 GB laptop GPU the local model is
-fast enough to feel live and good enough to be useful. The closed option would
-have been solving a problem this app doesn't have.
+**A 4.6 GB download was enough.** Rehearsal's core loop is deliberately narrow:
+stay in character for 1–3 sentences, and rewrite one message in three labelled
+lines. Gemma 4 E2B does both in a couple of seconds — **5.8 s cold load, 3.0 GB
+resident in a 4 GB GPU, 30–55 tok/s** as measured on a GTX 1650 Ti. A frontier
+model would do it slightly better, at the cost of money per attempt, a network
+dependency, and sending every practice sentence off-device. The closed option
+would have been solving a problem this app doesn't have.
 
-**Failure modes were fixable.** A 2B model ignores formatting instructions
-constantly — it bolds labels, drops colons, or rambles instead of answering.
-Every one of those is a parsing bug, and the fix is a regex and a fallback. If
-the model had been behind an API, the only recourse would have been to keep
-asking harder. `tests/test_coach.py` is a catalogue of those failures; they're
-tested because they happened.
+**The failure modes were ours to fix.** Gemma 4 ships with a hidden "thinking"
+pass switched on by default. On a 4 GB card it consumed the entire token budget
+before a single visible word appeared, which reads to the user as a hang — the
+first time I called it, the request timed out at 120 seconds with nothing
+written. `llm.py` now sends `think: false` explicitly: a one-line fix you can
+only make because you own the inference stack. The same is true of formatting —
+a small model bolds labels, drops colons, or rambles instead of answering, and
+every one of those is a parsing bug with a regex and a fallback as its cure.
+`tests/test_coach.py` is a catalogue of those failures; they're tested because
+they happened.
 
 ## Demo
 
-<!-- Add a screen recording (5-10s loops work well) and a screenshot here.
-     ffmpeg is available for recording: `ffmpeg -f x11grab ...`
-     Judges can't reward what they can't see. -->
+**31 seconds, one continuous take, no edits** — recorded locally while it ran:
+[rehearsal-demo.mp4](docs/rehearsal-demo.mp4)
 
-_GIF / video going here._
+It does the whole loop: pick a scenario → send a deliberately broken sentence →
+stream an in-character reply → get a correction that names the actual rule →
+end the session → get a scorecard.
+
+![Rehearsal's scenario picker](docs/landing.png)
+
+A single message produces this — the original, a native rewrite, one sentence
+naming the rule, and a more idiomatic alternative:
+
+![A correction card for a broken sentence](docs/correction.png)
+
+End the session and the model scores it, with averages across every session
+you have ever run:
+
+![The session scorecard with fluency, accuracy and vocabulary bars](docs/scorecard.png)
 
 ## How it's built
 
@@ -104,13 +121,15 @@ rehearsal/
 │   ├── scenarios.py  role definitions and scripted openings
 │   └── store.py      SQLite persistence (sessions, messages, corrections)
 ├── static/           vanilla HTML/CSS/JS — no build step, no framework, no CDN
-└── tests/            37 tests: parser edge cases, persistence, HTTP contract
+└── tests/            38 tests: parser edge cases, persistence, HTTP contract
 ```
 
 **Open-source AI at the core:**
 
-- **Model:** [`gemma2:2b`](https://huggingface.co/google/gemma-2) (open weights,
-  Gemma 2 Terms of Use) running locally.
+- **Model:** [`gemma4:e2b`](https://ollama.com/library/gemma4:e2b) — Google
+  DeepMind's **Gemma 4 Effective-2B** (2.3B effective / 5.1B total parameters,
+  128K context) in Q4_K_M, running locally under **Apache 2.0**. It loads in
+  ~6 s and sits in **3.0 GB of a 4 GB** GPU.
 - **Runtime:** [Ollama](https://ollama.com) (MIT) serving over
   `http://127.0.0.1:11434`.
 - **Harness:** written from scratch for this project — FastAPI, httpx,
@@ -133,8 +152,8 @@ concurrently. Latency is `max(reply, correction)` rather than the sum.
 Requires [Ollama](https://ollama.com/download) and Python 3.10+.
 
 ```bash
-# 1. one-time: pull the model (~1.6 GB)
-ollama pull gemma2:2b
+# 1. one-time: pull the model (~4.6 GB)
+ollama pull gemma4:e2b
 
 # 2. start the local server
 ollama serve &
@@ -162,7 +181,7 @@ scorecard prompt is the only place model quality really shows.
 
 ```bash
 .venv/bin/python -m pytest
-# 37 passed
+# 38 passed
 ```
 
 `tests/test_coach.py` is the interesting one: it documents the ways a small
@@ -180,7 +199,7 @@ instead of throwing.
 ## Notes and limits
 
 - Text-only by design — voice mode was cut to protect the deadline.
-- Scores come from a 2B model. Treat them as a directional nudge, not a
+- Scores come from a small local model. Treat them as a directional nudge, not a
   placement test.
 - Single user, single machine. There is no auth layer because there is no
   multi-user layer.

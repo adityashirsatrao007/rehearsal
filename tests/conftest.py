@@ -6,7 +6,7 @@ from pathlib import Path
 
 _tmpdir = tempfile.mkdtemp(prefix="rehearsal-test-")
 os.environ["REHEARSAL_DB"] = str(Path(_tmpdir) / "test.db")
-os.environ.setdefault("OLLAMA_MODEL", "gemma2:2b")
+os.environ.setdefault("OLLAMA_MODEL", "gemma4:e2b")
 
 import pytest  # noqa: E402
 

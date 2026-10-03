@@ -4,14 +4,14 @@ from app import store
 
 
 def test_create_and_read_session():
-    s = store.create_session("interview", "Job Interview", "gemma2:2b")
+    s = store.create_session("interview", "Job Interview", "gemma4:e2b")
     assert s["scenario"] == "interview"
-    assert s["model"] == "gemma2:2b"
+    assert s["model"] == "gemma4:e2b"
     assert store.get_session(s["id"])["scenario_title"] == "Job Interview"
 
 
 def test_messages_round_trip_in_order():
-    s = store.create_session("smalltalk", "Small Talk", "gemma2:2b")
+    s = store.create_session("smalltalk", "Small Talk", "gemma4:e2b")
     first = store.add_message(s["id"], "learner", "Hello there")
     second = store.add_message(s["id"], "partner", "Hey, how's it going?")
     third = store.add_message(s["id"], "learner", "Good thanks")
@@ -26,7 +26,7 @@ def test_messages_round_trip_in_order():
 
 
 def test_correction_links_to_a_message():
-    s = store.create_session("interview", "Job Interview", "gemma2:2b")
+    s = store.create_session("interview", "Job Interview", "gemma4:e2b")
     mid = store.add_message(s["id"], "learner", "I work in company")
     cid = store.add_correction(s["id"], mid, "I work at a company", "Preposition.", "")
 
@@ -38,7 +38,7 @@ def test_correction_links_to_a_message():
 
 
 def test_delete_session_removes_its_children():
-    s = store.create_session("travel", "Travel & Service", "gemma2:2b")
+    s = store.create_session("travel", "Travel & Service", "gemma4:e2b")
     mid = store.add_message(s["id"], "learner", "Can I get late checkout?")
     store.add_correction(s["id"], mid, "Could I get a late checkout?", "Politeness.", "")
 
@@ -53,7 +53,7 @@ def test_delete_missing_session_is_false():
 
 
 def test_finish_session_writes_scorecard():
-    s = store.create_session("client", "Client Call", "gemma2:2b")
+    s = store.create_session("client", "Client Call", "gemma4:e2b")
     store.add_message(s["id"], "learner", "We are delayed by one week")
     store.finish_session(s["id"], 7, 6, 8, "Solid.", "Past tense next.")
 
@@ -66,7 +66,7 @@ def test_finish_session_writes_scorecard():
 
 
 def test_learner_turns_excludes_partner():
-    s = store.create_session("presentation", "Presentation Q&A", "gemma2:2b")
+    s = store.create_session("presentation", "Presentation Q&A", "gemma4:e2b")
     store.add_message(s["id"], "partner", "How did you measure it?")
     store.add_message(s["id"], "learner", "We used real user timings")
     store.add_message(s["id"], "partner", "Over what period?")
@@ -86,8 +86,8 @@ def test_progress_stats_starts_empty():
 
 
 def test_progress_stats_averages_only_finished_sessions():
-    a = store.create_session("interview", "Job Interview", "gemma2:2b")
-    b = store.create_session("client", "Client Call", "gemma2:2b")
+    a = store.create_session("interview", "Job Interview", "gemma4:e2b")
+    b = store.create_session("client", "Client Call", "gemma4:e2b")
     store.add_message(a["id"], "learner", "one")
     store.add_message(b["id"], "learner", "two")
     store.add_message(b["id"], "learner", "three")

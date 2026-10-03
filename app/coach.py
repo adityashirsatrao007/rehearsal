@@ -1,6 +1,7 @@
 """Prompt assembly and output parsing for the coach calls.
 
-Gemma 2B does not follow complex schemas reliably, so parsing here is defensive:
+A small open-weight model does not follow complex schemas reliably, so parsing
+here is defensive:
 strict line-prefix parsing first, then a tolerant fallback, and finally a
 graceful degradation to raw model text rather than an exception.
 """

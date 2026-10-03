@@ -13,7 +13,7 @@ from collections.abc import AsyncIterator
 import httpx
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/")
-DEFAULT_MODEL = os.environ.get("OLLAMA_MODEL", "gemma2:2b")
+DEFAULT_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:e2b")
 
 # Per-call sampling. Small models get punished for being verbose.
 ROLE_OPTIONS = {"temperature": 0.8, "top_p": 0.9, "num_predict": 160}
@@ -23,6 +23,13 @@ SUMMARY_OPTIONS = {"temperature": 0.3, "top_p": 0.9, "num_predict": 220}
 # Ollama unloads a model after 5 minutes idle by default. On a laptop GPU the
 # reload costs minutes, not seconds, so keep it resident for the session.
 KEEP_ALIVE = os.environ.get("OLLAMA_KEEP_ALIVE", "30m")
+
+# Several current Gemma-family models open with a hidden "thinking" pass that
+# can consume the entire token budget before a single visible word is written —
+# on a 4 GB card that reads as a hang. Rehearsal wants the answer, not the
+# deliberation, so it is switched off explicitly. Models without the capability
+# ignore the field.
+THINK = os.environ.get("OLLAMA_THINK", "false").lower() in {"1", "true", "yes", "on"}
 
 # Cold-start bookkeeping. Loading a model into VRAM is slow enough that the
 # first user message would otherwise appear to hang, so we pre-warm on startup
@@ -134,6 +141,7 @@ async def generate(
         "prompt": prompt,
         "stream": False,
         "keep_alive": KEEP_ALIVE,
+        "think": THINK,
         "options": options or FEEDBACK_OPTIONS,
     }
     try:
@@ -156,6 +164,7 @@ async def stream_chat(
         "messages": messages,
         "stream": True,
         "keep_alive": KEEP_ALIVE,
+        "think": THINK,
         "options": options or ROLE_OPTIONS,
     }
     try:

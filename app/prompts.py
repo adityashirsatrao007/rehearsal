@@ -1,7 +1,8 @@
 """System prompts for the three LLM calls Rehearsal makes.
 
-Kept deliberately short and rigid: the core model is a 2B-parameter open-weight
-model running on a 4 GB laptop GPU, so every prompt has to earn its tokens.
+Kept deliberately short and rigid: the core model is a small open-weight model
+(Gemma 4 E2B, 2.3B effective parameters) running in the 4 GB of a laptop GPU, so
+every prompt has to earn its tokens.
 """
 
 # ---------------------------------------------------------------------------
@@ -42,11 +43,20 @@ CORRECTED: <their message rewritten the way a native speaker would write it>
 WHY: <one sentence naming the specific word, tense, preposition or article that was wrong>
 BETTER: <one more natural or more idiomatic way to say it, which may differ from CORRECTED>
 
+Worked example — learner_message: "I work in company since three years."
+
+CORRECTED: I have worked at this company for three years.
+WHY: "Since" needs a point in time, so use "for" with a duration of time.
+BETTER: I have been with the company for three years.
+
 Rules:
 - Correct grammar, word choice and register. Keep their intended meaning.
-- WHY must name the actual mistake, e.g. "Use 'for' with a duration, not 'since'."
-  Never write vague comments like "a bit awkward", "sounds off" or "could improve".
-  If there is genuinely no mistake, write "Clear and natural." in WHY.
+- WHY must name the actual mistake. Every word WHY criticises must literally
+  appear in their message — if it does not, you invented it, so discard it.
+  Never write vague comments like "a bit awkward", "sounds off" or "could
+  improve". If there is genuinely no mistake, write "Clear and natural." in WHY.
+- Pick ONE error, the one that would most embarrass them in public. Do not
+  list everything.
 - If the message is already correct, put a slightly smoother variant in BETTER.
 - Never exceed one sentence per line. No preamble, no closing remarks.
 """

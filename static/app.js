@@ -57,7 +57,7 @@ async function loadStatus() {
   if (!state.status.ready) {
     banner.hidden = false;
     banner.innerHTML =
-      `${state.status.detail} Install it with <code>ollama pull gemma2:2b</code>, ` +
+      `${state.status.detail} Install it with <code>ollama pull gemma4:e2b</code>, ` +
       `then reload this page.`;
   } else if (state.status.warming) {
     banner.hidden = false;

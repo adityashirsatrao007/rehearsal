@@ -189,7 +189,7 @@ main {
 /* ── scenario grid ──────────────────────────────────────────────── */
 .scenario-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
   gap: 16px;
 }
 .scenario {
@@ -403,13 +403,20 @@ main {
 }
 .score-label { width: 92px; color: var(--ink-soft); }
 .score-track {
+  display: block;
   flex: 1;
   height: 7px;
   background: var(--paper-sunk);
   border-radius: 999px;
   overflow: hidden;
 }
-.score-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width .5s ease; }
+.score-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width .5s ease;
+}
 .score-num { width: 26px; text-align: right; font-family: var(--mono); font-size: 13px; color: var(--ink); }
 
 .score-note {
