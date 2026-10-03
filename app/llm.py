@@ -20,9 +20,48 @@ ROLE_OPTIONS = {"temperature": 0.8, "top_p": 0.9, "num_predict": 160}
 FEEDBACK_OPTIONS = {"temperature": 0.2, "top_p": 0.9, "num_predict": 180}
 SUMMARY_OPTIONS = {"temperature": 0.3, "top_p": 0.9, "num_predict": 220}
 
+# Ollama unloads a model after 5 minutes idle by default. On a laptop GPU the
+# reload costs minutes, not seconds, so keep it resident for the session.
+KEEP_ALIVE = os.environ.get("OLLAMA_KEEP_ALIVE", "30m")
+
+# Cold-start bookkeeping. Loading a model into VRAM is slow enough that the
+# first user message would otherwise appear to hang, so we pre-warm on startup
+# and surface the state to the UI instead of pretending everything is ready.
+_warm: dict = {"state": "cold", "model": None, "error": None}
+
 
 class LLMUnavailable(RuntimeError):
     """Raised when the local Ollama server cannot be reached."""
+
+
+def warm_status() -> dict:
+    return dict(_warm)
+
+
+def is_warm(model: str | None = None) -> bool:
+    return _warm["state"] == "warm" and (model is None or _warm["model"] == model)
+
+
+async def warm_up(model: str, timeout: float = 900.0) -> bool:
+    """Load the model into VRAM ahead of the first real message.
+
+    Runs once at startup as a fire-and-forget task. A failure here is not fatal:
+    the app still works, it just falls back to loading on first use.
+    """
+    _warm.update({"state": "warming", "model": model, "error": None})
+    try:
+        await generate(
+            model,
+            "You are a readiness probe. Reply with the single word: ready",
+            "Probe.",
+            options={"num_predict": 4, "temperature": 0.0},
+            timeout=timeout,
+        )
+    except Exception as exc:  # noqa: BLE001 — warm-up must never crash the app
+        _warm.update({"state": "cold", "error": str(exc)})
+        return False
+    _warm.update({"state": "warm", "error": None})
+    return True
 
 
 def _client(timeout: float = 120.0) -> httpx.AsyncClient:
@@ -60,16 +99,24 @@ async def status() -> dict:
     except (httpx.HTTPError, ValueError):
         models = []
 
+    warm = warm_status()
+    if not models:
+        detail = f"Ollama {ollama_version} is running but no models are pulled yet."
+    elif warm["state"] == "warming":
+        detail = "Warming up the local model — the first reply will be ready shortly."
+    elif warm["state"] == "cold" and warm.get("error"):
+        detail = f"Model is not loaded yet: {warm['error']}"
+    else:
+        detail = "Ready."
+
     return {
         "ready": bool(models),
+        "warming": warm["state"] == "warming",
+        "warm": warm["state"],
         "ollama": ollama_version,
         "model": DEFAULT_MODEL,
         "models": models,
-        "detail": (
-            "Ready."
-            if models
-            else f"Ollama {ollama_version} is running but no models are pulled yet."
-        ),
+        "detail": detail,
     }
 
 
@@ -78,17 +125,19 @@ async def generate(
     system: str,
     prompt: str,
     options: dict | None = None,
+    timeout: float = 120.0,
 ) -> str:
-    """One-shot completion. Used for corrections and session summaries."""
+    """One-shot completion. Used for corrections, summaries and the warm-up probe."""
     payload = {
         "model": model,
         "system": system,
         "prompt": prompt,
         "stream": False,
+        "keep_alive": KEEP_ALIVE,
         "options": options or FEEDBACK_OPTIONS,
     }
     try:
-        async with _client() as client:
+        async with _client(timeout) as client:
             resp = await client.post("/api/generate", json=payload)
             resp.raise_for_status()
             return (resp.json().get("response") or "").strip()
@@ -106,10 +155,11 @@ async def stream_chat(
         "model": model,
         "messages": messages,
         "stream": True,
+        "keep_alive": KEEP_ALIVE,
         "options": options or ROLE_OPTIONS,
     }
     try:
-        async with _client() as client:
+        async with _client(timeout=600.0) as client:
             async with client.stream("POST", "/api/chat", json=payload) as resp:
                 if resp.status_code >= 400:
                     await resp.aread()

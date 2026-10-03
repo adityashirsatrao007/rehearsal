@@ -10,11 +10,12 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -24,7 +25,16 @@ from .scenarios import SCENARIOS, get_scenario, list_scenarios
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_DIR = BASE_DIR / "static"
 
-app = FastAPI(title="Rehearsal", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # Loading a model into VRAM is slow enough that the first message would look
+    # like a hang. Warm it in the background instead; never block startup.
+    asyncio.create_task(llm.warm_up(llm.DEFAULT_MODEL))
+    yield
+
+
+app = FastAPI(title="Rehearsal", version="1.0.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 store.init_db()
@@ -50,6 +60,17 @@ class MessageIn(BaseModel):
 @app.get("/")
 def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/health")
+def health() -> JSONResponse:
+    """Liveness + readiness probe. 200 only once the model is actually usable."""
+    warm = llm.warm_status()
+    ready = llm.is_warm()
+    return JSONResponse(
+        status_code=200 if ready else 503,
+        content={"status": "ok" if ready else warm["state"], "model": llm.DEFAULT_MODEL, **warm},
+    )
 
 
 @app.get("/api/status")

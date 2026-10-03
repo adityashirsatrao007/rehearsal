@@ -27,10 +27,19 @@ def test_scenarios_endpoint_returns_the_full_set():
         assert set(s) == {"id", "title", "emoji", "blurb", "opening"}
 
 
+def test_health_reports_model_warmth():
+    res = client.get("/health")
+    assert res.status_code in (200, 503)
+    body = res.json()
+    assert body["status"] in ("ok", "warming", "cold")
+    assert "model" in body
+    assert "state" in body
+
+
 def test_status_reports_ollama_state():
     res = client.get("/api/status")
     assert res.status_code == 200
-    assert set(res.json()) >= {"ready", "ollama", "model", "models", "detail"}
+    assert set(res.json()) >= {"ready", "ollama", "model", "models", "detail", "warm", "warming"}
 
 
 def test_progress_starts_empty():

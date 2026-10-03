@@ -39,13 +39,15 @@ Give feedback on their message ONLY. Output EXACTLY these three lines and nothin
 else. Use plain text, no markdown, no quotes, no bullet points.
 
 CORRECTED: <their message rewritten the way a native speaker would write it>
-WHY: <ONE short sentence naming the most important error, or "Clear and natural." if none>
+WHY: <one sentence naming the specific word, tense, preposition or article that was wrong>
 BETTER: <one more natural or more idiomatic way to say it, which may differ from CORRECTED>
 
 Rules:
 - Correct grammar, word choice and register. Keep their intended meaning.
-- If the message is already correct, write "Clear and natural." in WHY and put a
-  slightly smoother variant in BETTER.
+- WHY must name the actual mistake, e.g. "Use 'for' with a duration, not 'since'."
+  Never write vague comments like "a bit awkward", "sounds off" or "could improve".
+  If there is genuinely no mistake, write "Clear and natural." in WHY.
+- If the message is already correct, put a slightly smoother variant in BETTER.
 - Never exceed one sentence per line. No preamble, no closing remarks.
 """
 

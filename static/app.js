@@ -59,6 +59,11 @@ async function loadStatus() {
     banner.innerHTML =
       `${state.status.detail} Install it with <code>ollama pull gemma2:2b</code>, ` +
       `then reload this page.`;
+  } else if (state.status.warming) {
+    banner.hidden = false;
+    banner.textContent = state.status.detail;
+    // Poll until the model is resident so the banner clears itself.
+    setTimeout(loadStatus, 3000);
   } else {
     banner.hidden = true;
   }
