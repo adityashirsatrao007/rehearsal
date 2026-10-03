@@ -91,7 +91,10 @@ they happened.
 ## Demo
 
 **31 seconds, one continuous take, no edits** — recorded locally while it ran:
-[rehearsal-demo.mp4](docs/rehearsal-demo.mp4)
+
+<video src="https://raw.githubusercontent.com/adityashirsatrao007/rehearsal/main/docs/rehearsal-demo.mp4" controls width="720" preload="metadata"></video>
+
+[Fallback link if your browser will not play it (1.1 MB, MP4)](docs/rehearsal-demo.mp4)
 
 It does the whole loop: pick a scenario → send a deliberately broken sentence →
 stream an in-character reply → get a correction that names the actual rule →
