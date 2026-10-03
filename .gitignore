@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Local data — never commit a friend's practice history
+data/
+*.db
+*.sqlite3
+
+# Secrets
+.env
+*.env
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# LaTeX artifacts (if any docs are compiled)
+*.aux
+*.log
+*.fls
+*.fdb_latexmk

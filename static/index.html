@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rehearsal — practise English conversations, offline</title>
+  <meta name="description" content="An offline English conversation partner. Roleplay a real conversation, get every message corrected, track your progress. Runs entirely on your own machine." />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230f6b5c'/><text x='50' y='72' font-size='62' font-family='Georgia,serif' fill='%23faf7f2' text-anchor='middle'>R</text></svg>" />
+</head>
+<body>
+  <div id="offlineBanner" class="banner" hidden></div>
+
+  <header class="topbar">
+    <a class="brand" href="/">
+      <span class="mark">R</span>
+      <span class="wordmark">Rehearsal</span>
+    </a>
+
+    <div class="topbar-right">
+      <label class="field">
+        <span class="field-label">Model</span>
+        <select id="modelSelect" title="Swap the open-weight model — nothing else changes">
+          <option>gemma2:2b</option>
+        </select>
+      </label>
+      <button id="historyBtn" class="btn btn-ghost" type="button">History</button>
+      <button id="newBtn" class="btn btn-solid" type="button">New session</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ── scenario picker ─────────────────────────────────────────── -->
+    <section id="viewPick" class="view">
+      <div class="hero">
+        <p class="eyebrow">Runs on your laptop · nothing is uploaded</p>
+        <h1>Practise the conversation<br /><em>before it happens.</em></h1>
+        <p class="lede">
+          Pick a scenario. Someone on the other side of the table talks to you —
+          an interviewer, a client, a colleague. Every message you send comes back
+          with a correction. No account, no server, no internet.
+        </p>
+      </div>
+
+      <div class="scenario-grid" id="scenarioGrid"></div>
+
+      <p class="footnote">
+        Built on an open-weight model running locally. Your practice history stays in a
+        SQLite file on this machine.
+      </p>
+    </section>
+
+    <!-- ── active session ─────────────────────────────────────────── -->
+    <section id="viewSession" class="view" hidden>
+      <div class="session-head">
+        <div>
+          <p class="eyebrow" id="sessionScenario">Scenario</p>
+          <h2 id="sessionTitle">Session</h2>
+        </div>
+        <button id="endBtn" class="btn btn-outline" type="button">End &amp; score</button>
+      </div>
+
+      <div class="session-body">
+        <div class="chat">
+          <div id="messages" class="messages" aria-live="polite"></div>
+
+          <form id="composer" class="composer">
+            <textarea
+              id="input"
+              rows="2"
+              placeholder="Type your reply… (Enter to send, Shift+Enter for a new line)"
+              maxlength="4000"
+              autofocus
+            ></textarea>
+            <button id="sendBtn" class="btn btn-solid btn-send" type="submit">Send</button>
+          </form>
+        </div>
+
+        <aside class="rail">
+          <div class="panel">
+            <h3 class="panel-title">Corrections</h3>
+            <div id="corrections" class="corrections">
+              <p class="empty">Write something and your feedback lands here.</p>
+            </div>
+          </div>
+
+          <div class="panel panel-score" id="scorePanel" hidden>
+            <h3 class="panel-title">This session</h3>
+            <div id="scoreBody"></div>
+          </div>
+
+          <div class="panel panel-stats">
+            <h3 class="panel-title">All time</h3>
+            <div id="statsBody" class="stats"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ── history ────────────────────────────────────────────────── -->
+    <section id="viewHistory" class="view" hidden>
+      <div class="session-head">
+        <div>
+          <p class="eyebrow">Local only</p>
+          <h2>Your practice history</h2>
+        </div>
+        <button id="backBtn" class="btn btn-outline" type="button">Back</button>
+      </div>
+      <div id="historyList" class="history"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
