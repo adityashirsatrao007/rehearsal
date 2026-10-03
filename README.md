@@ -121,7 +121,8 @@ rehearsal/
 │   ├── scenarios.py  role definitions and scripted openings
 │   └── store.py      SQLite persistence (sessions, messages, corrections)
 ├── static/           vanilla HTML/CSS/JS — no build step, no framework, no CDN
-└── tests/            38 tests: parser edge cases, persistence, HTTP contract
+└── tests/            45 tests: parser edge cases, persistence, HTTP contract,
+                       and the offline guarantee
 ```
 
 **Open-source AI at the core:**
@@ -181,8 +182,14 @@ scorecard prompt is the only place model quality really shows.
 
 ```bash
 .venv/bin/python -m pytest
-# 38 passed
+# 45 passed
 ```
+
+`tests/test_offline.py` is the one worth a look: **"there is no outbound call
+to make" is a test, not a claim.** It fails the build if an absolute URL
+anywhere other than loopback appears in the source, if the frontend makes a
+cross-origin `fetch`, if `index.html` references a remote asset, or if the test
+suite ever opens a real transcript instead of a throwaway file.
 
 `tests/test_coach.py` is the interesting one: it documents the ways a small
 model refuses to follow instructions, and asserts the app degrades gracefully
